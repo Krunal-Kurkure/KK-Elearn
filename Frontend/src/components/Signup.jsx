@@ -1,21 +1,48 @@
 // eslint-disable-next-line no-unused-vars
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Login from "./Login";
 import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast from "react-hot-toast";
 function Signup() {
+  const location = useLocation();
+  const navigate =useNavigate();
+  const from = location.state?.from?.pathname || "/"
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const onSubmit = (data) => console.log(data);
+  const onSubmit = async (data) => {
+    const userInfo = {
+      fullname: data.fullname,
+      email: data.email,
+      password: data.password,
+    };
+    await axios
+      .post("http://localhost:4001/user/signup", userInfo)
+      .then((res) => {
+        console.log(res.data);
+        if (res.data) {
+          toast.success('Signup Successfully');
+          navigate(from,{replace:true});
+        }
+        localStorage.setItem("Users",JSON.stringify(res.data.user));
+      })
+      .catch((err) => {
+        if (err.response) {
+          console.log(err);
+          toast.error("Error: " + err.response.data.message);
+        }
+      });
+  };
 
   return (
     <>
       <div className="flex h-screen items-center justify-center">
         <div className="">
-          <div className="modal-box w-96 dark:bg-slate-900 dark:text-white border border-2">
+          <div className="modal-box w-96 dark:bg-slate-900 dark:text-white border-2">
             <form onSubmit={handleSubmit(onSubmit)} method="dialog">
               {/* if there is a button in form, it will close the modal */}
               <Link
@@ -24,7 +51,7 @@ function Signup() {
               >
                 ✕
               </Link>
-              <h3 className="font-bold text-lg">Login</h3>
+              <h3 className="font-bold text-lg">Sign Up</h3>
 
               <div className="mt-4 space-y-2">
                 <span>Name</span>
@@ -33,11 +60,15 @@ function Signup() {
                   type="text"
                   placeholder="Enter your fullname"
                   className="w-80 px-3 py-1 rounded-md outline-none border"
-                  {...register("name", { required: "Email is required" })}
-                  />
-                  <br />
-                  {errors.name && <span className="text-sm text-red-500">{errors.email.message}</span>}
-                </div>
+                  {...register("fullname", { required: "Email is required" })}
+                />
+                <br />
+                {errors.fullname && (
+                  <span className="text-sm text-red-500">
+                    {errors.email.message}
+                  </span>
+                )}
+              </div>
 
               {/* Here is email code */}
               <div className="mt-4 space-y-2">
@@ -49,8 +80,12 @@ function Signup() {
                   className="w-80 px-3 py-1 rounded-md outline-none border"
                   {...register("email", { required: "Email is required" })}
                 />
-                 <br />
-                 {errors.email && <span className="text-sm text-red-500">{errors.email.message}</span>}
+                <br />
+                {errors.email && (
+                  <span className="text-sm text-red-500">
+                    {errors.email.message}
+                  </span>
+                )}
               </div>
               {/* here is password code */}
               <div className="mt-4 space-y-2">
@@ -60,11 +95,17 @@ function Signup() {
                   type="text"
                   placeholder="Enter your password"
                   className="w-80 px-3 py-1 rounded-md outline-none border"
-                  {...register("password", { required: "Password is required" })}
-                  />
-                  <br />
-                  {errors.password && <span className="text-sm text-red-500">{errors.password.message}</span>}
-                </div>
+                  {...register("password", {
+                    required: "Password is required",
+                  })}
+                />
+                <br />
+                {errors.password && (
+                  <span className="text-sm text-red-500">
+                    {errors.password.message}
+                  </span>
+                )}
+              </div>
 
               {/* button here  */}
               <div className="flex justify-between mt-4 ">
